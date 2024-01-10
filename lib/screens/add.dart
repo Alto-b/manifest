@@ -8,31 +8,25 @@ import 'package:manifest/model/db_functions.dart';
 import 'package:manifest/model/student_model.dart';
 import 'package:provider/provider.dart';
 
-class AddPage extends StatefulWidget {
-  const AddPage({super.key});
+class AddPage extends StatelessWidget {
+   AddPage({
+    super.key,
+    this.isEdit,
+    this.stu});
 
-  @override
-  State<AddPage> createState() => _AddPageState();
-}
-
-class _AddPageState extends State<AddPage> {
+   bool? isEdit = false ;
+   StudentModel? stu;
 
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
-  final _domainController = TextEditingController();
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
-
   final gender = ['male','female','others'];
   String selGender='';
-
-  final domainList = ['Mern','Flutter','python'];
+  final domainList = ['MERN - web development','MEAN - web development','Django and React','Mobile development using Flutter','Data Science','Cyber security'];
   String domain = '';
-
   File? _selectedImage;
   DateTime dob = DateTime.now();
-  
   String? d;
   DateTime? db;
 
@@ -226,7 +220,6 @@ class _AddPageState extends State<AddPage> {
     );
   }
 
-
 //to save
   Future<void> submit(String? d, DateTime? db)async{
     final imagePath = _selectedImage!.path;
@@ -246,12 +239,9 @@ class _AddPageState extends State<AddPage> {
       dob: dob.toString(), 
       mobile: mobile, 
       email: email);
-      // print(student.dob);
-
-      addStudent(student);
-
+   addStudent(student);
   }
+}
 
 
-  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:manifest/helper/student_helper.dart';
 import 'package:manifest/model/student_model.dart';
@@ -6,18 +7,19 @@ import 'package:manifest/screens/homepage.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async{
-  runApp(const MyApp());
+
   
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
 
-  await Hive.openBox<StudentModel>('student_db');
+   Hive.openBox<StudentModel>('student_db');
 
   if(!Hive.isAdapterRegistered(StudentModelAdapter().typeId)){
     Hive.registerAdapter(StudentModelAdapter());
   }
 
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -34,8 +36,13 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.white,
+            // centerTitle: true,
+            iconTheme: IconThemeData(color: Colors.black54),
+            titleTextStyle: GoogleFonts.roboto(color: Colors.black54),
+            elevation: 0
+          ), colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple).copyWith(background: Colors.white)
         ),
         home: const HomePage(),
       ),

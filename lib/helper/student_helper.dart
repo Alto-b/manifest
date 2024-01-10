@@ -9,31 +9,34 @@ class StudentProvider extends ChangeNotifier{
   DateTime? dateOfBirth;
   String? gender;
   String? domain;
+  
+  int count = 0;
 
 
-//to update image
+//to add image
   getImage(File image){
     profileImage = image;
     notifyListeners();
   }
 
-//to update dob
+//to add dob
   getDOB(DateTime dob){
     dateOfBirth = dob;
     notifyListeners();
   }
 
-//to update gender
+//to add gender
   getGender(String g){
     gender = g;
     notifyListeners();
   }
 
-//to update domain
+//to add domain
   getDomain(String d){
     domain = d;
     notifyListeners();
   }
+
 
 
 }
