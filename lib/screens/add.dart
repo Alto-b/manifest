@@ -1,37 +1,66 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:manifest/helper/student_helper.dart';
+import 'package:manifest/helper/validators.dart';
 import 'package:manifest/model/db_functions.dart';
 import 'package:manifest/model/student_model.dart';
+import 'package:manifest/screens/homepage.dart';
 import 'package:provider/provider.dart';
 
-class AddPage extends StatelessWidget {
+class AddPage extends StatefulWidget {
    AddPage({
     super.key,
-    this.isEdit,
+    required this.isEdit,
     this.stu});
 
-   bool? isEdit = false ;
+   bool isEdit = false ;
    StudentModel? stu;
 
+  @override
+  State<AddPage> createState() => _AddPageState();
+}
+
+class _AddPageState extends State<AddPage> {
   final _formKey = GlobalKey<FormState>();
+
   final _nameController = TextEditingController();
+
   final _mobileController = TextEditingController();
+
   final _emailController = TextEditingController();
+
   final gender = ['male','female','others'];
+
   String selGender='';
+
   final domainList = ['MERN - web development','MEAN - web development','Django and React','Mobile development using Flutter','Data Science','Cyber security'];
-  String domain = '';
+
+  String selDomain = '';
+
   File? _selectedImage;
+
   DateTime dob = DateTime.now();
+
   String? d;
+
   DateTime? db;
 
   @override
   Widget build(BuildContext context) {
+
+    if(widget.isEdit){
+      _selectedImage = File(widget.stu!.photo);
+      _nameController.text = widget.stu!.name;
+      selGender = widget.stu!.gender;
+      selDomain = widget.stu!.domain;
+      db = DateTime.parse(widget.stu!.dob);
+      _mobileController.text = widget.stu!.mobile;
+      _emailController.text = widget.stu!.email;
+
+
+    }
     return Consumer<StudentProvider>(
       builder:(context, value, child) => 
        Scaffold(
@@ -69,7 +98,7 @@ class AddPage extends StatelessWidget {
                           ),
                           child: _selectedImage != null
                           ?Image.file(_selectedImage!,fit: BoxFit.fill,)
-                          :Icon(Icons.photo)                  
+                          :const Icon(Icons.photo)                  
                           ,
                         )
                       ),
@@ -79,6 +108,8 @@ class AddPage extends StatelessWidget {
         
                       TextFormField(
                         controller: _nameController,
+                        validator: Validators.validateFullName,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         decoration: const InputDecoration(
                           hintText: "Name"
                         ),
@@ -139,6 +170,12 @@ class AddPage extends StatelessWidget {
       
 
                 DropdownButtonFormField(
+                  validator: (value){
+                      if(value == null ){
+                        return "select Domain";
+                      }
+                      return null;
+                    },
                     decoration: InputDecoration(
                         hintText: 'Domain',
                         focusedBorder: OutlineInputBorder(
@@ -180,6 +217,8 @@ class AddPage extends StatelessWidget {
                       const SizedBox(height: 10,),
         
                       TextFormField(
+                        validator: Validators.validateMobile,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         controller: _mobileController,
                         decoration: const InputDecoration(
                           hintText: "Mobile ",
@@ -190,6 +229,8 @@ class AddPage extends StatelessWidget {
                       const SizedBox(height: 20,),
         
                       TextFormField(
+                        validator:Validators.validateEmail,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         controller: _emailController,
                         decoration: const InputDecoration(
                           hintText: "Email"
@@ -202,15 +243,22 @@ class AddPage extends StatelessWidget {
     
                 const SizedBox(height: 20,),
     
+              widget.isEdit?
               ElevatedButton.icon(
+                onPressed: (){
+                   edit(d=value.domain, db=value.dateOfBirth);
+                }, 
+                icon: const Icon(Icons.update), 
+                label: const Text("Update"))
+                :ElevatedButton.icon(
                 onPressed: (){
 
                   submit(
                     d=value.domain, db = value.dateOfBirth
                   );
                 }, 
-                icon: Icon(Icons.save), 
-                label: Text("Register"))
+                icon: const Icon(Icons.save), 
+                label: const Text("Register"))
     
               ],
             ),
@@ -220,28 +268,82 @@ class AddPage extends StatelessWidget {
     );
   }
 
-//to save
-  Future<void> submit(String? d, DateTime? db)async{
-    final imagePath = _selectedImage!.path;
-    final name = _nameController.text.trim();
-    final gender = selGender;
-    final domain = d;
-    final  dob = db;
-    final mobile = _mobileController.text.trim();
-    final email = _emailController.text.trim();
+// ...
+Future<void> submit(String? d, DateTime? db) async {
+  final imagePath = _selectedImage?.path;
+  final name = _nameController.text.trim();
+  final gender = selGender;
+  final domain = d;
+  final dob = db?.toString();
+  final mobile = _mobileController.text.trim();
+  final email = _emailController.text.trim();
 
-  if(_formKey.currentState!.validate()){
-    final student = StudentModel(
-      photo: imagePath, 
-      name: name, 
-      gender: gender, 
-      domain: domain!,
-      dob: dob.toString(), 
-      mobile: mobile, 
-      email: email);
-   addStudent(student);
+  if (_formKey.currentState?.validate() ?? false) {
+    if (imagePath != null && dob != null ) {
+      final student = StudentModel(
+        photo: imagePath,
+        name: name,
+        gender: gender,
+        domain: domain!,
+        dob: dob,
+        mobile: mobile,
+        email: email,
+      );
+      addStudent(student);
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomePage(),), (route) => false);
+    } else {
+      // Handle the case where imagePath, dob, or gender is null
+      // print("Error: imagePath, dob, or gender is null");
+      ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Enter all data'),
+      duration: Duration(seconds: 2),
+    ),
+  );
+    }
+  }else{
+    ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Enter all data'),
+      duration: Duration(seconds: 2),
+    ),
+  );
   }
 }
 
+//to update
+Future<void> edit(String? d, DateTime? db) async {
+  int? id = widget.stu!.id;
+  final imagePath = _selectedImage?.path;
+  final name = _nameController.text.trim();
+  final gender = selGender;
+  final domain = d;
+  final dob = db?.toString();
+  final mobile = _mobileController.text.trim();
+  final email = _emailController.text.trim();
+
+  if (_formKey.currentState?.validate() ?? false) {
+    if (imagePath != null && dob != null && gender!=null) {
+      editStudent(id!, imagePath, name, gender, domain!, dob, mobile, email);
+    } else {
+      // Handle the case where imagePath, dob, or gender is null
+      // print("Error: imagePath, dob, or gender is null");
+      ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Enter all data'),
+      duration: Duration(seconds: 2),
+    ),
+  );
+    }
+  }else{
+    ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Enter all data'),
+      duration: Duration(seconds: 2),
+    ),
+  );
+  }
+}
 
 }
+

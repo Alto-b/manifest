@@ -1,11 +1,15 @@
+import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:manifest/model/db_functions.dart';
 import 'package:manifest/model/student_model.dart';
+import 'package:manifest/screens/add.dart';
 import 'package:manifest/screens/details.dart';
 
 class StudentList extends StatefulWidget {
@@ -23,6 +27,10 @@ class _StudentListState extends State<StudentList> {
     studentCount();
   }
 
+  final SearchController = TextEditingController();
+  String searchText='';
+  Timer? debouncer;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,12 +42,37 @@ class _StudentListState extends State<StudentList> {
       body:  SingleChildScrollView(
         child: Column(
           children: [
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(15, 0, 15, 25),
+              child: TextFormField(
+                controller: SearchController,
+                onChanged: (value) {
+                  onSearchChange(value);
+                },
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: "Search name",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25)
+                  )
+                ),
+              ),
+            ),
+
             SizedBox(
-              height: 800,
+              height: 600,
               child: ValueListenableBuilder(
                 valueListenable: studentListNotifier, 
                 builder: (BuildContext ctx,List<StudentModel> studentList,Widget? child){
-                  return ListView.separated(
+                return  studentList.isEmpty? 
+                Center(child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.network('https://assets-v2.lottiefiles.com/a/435a7e80-1153-11ee-a46f-7f1c0e4a511a/ePxvZATa5E.gif',height: 200,),
+                  ],
+                ),)
+                :ListView.separated(
                       itemBuilder: ((context,index){
                         final data = studentList[index];
                         return Slidable(
@@ -47,7 +80,7 @@ class _StudentListState extends State<StudentList> {
                             motion: const DrawerMotion(), 
                             children:[
                               SlidableAction(onPressed: (context){
-                                
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => AddPage(isEdit: true,stu:data),));
                               },icon: Icons.edit,backgroundColor: Colors.lightBlue,),
 
                             ],
@@ -124,6 +157,21 @@ class _StudentListState extends State<StudentList> {
         ),
       );
     });
+  }
+
+  onSearchChange(String value){
+    final studendb = Hive.box<StudentModel>('student_db');
+    final students = studendb.values.toList();
+    value = SearchController.text;
+
+    if(debouncer?.isActive ?? false) debouncer?.cancel();
+    debouncer = Timer(Duration(milliseconds: 250), () {
+      if(this.searchText != SearchController){
+          final filteredStudents = students.where((students) => 
+            students.name.toLowerCase().contains(value.toLowerCase())).toList();
+            studentListNotifier.value = filteredStudents;
+      }
+     });
   }
 
   TextStyle textStyle() => GoogleFonts.roboto(fontSize: 16);

@@ -50,3 +50,33 @@ Future<void> deleteStudent(int id)async{
   await studentdb.delete(id);
   getStudents();
 }
+
+Future<void> editStudent(
+  int id,
+  String updatedPhoto,
+  String updatedName,
+  String updatedGender,
+  String updatedDomain,
+  String updatedDob,
+  String updatedMobile,
+  String updatedEmail
+)async{
+  final studentdb = await Hive.openBox<StudentModel>('student_db');
+  final existingStudent = studentdb.values.firstWhere((s) => s.id==id);
+  if(existingStudent == null){
+     print("student not found");
+  }
+  else{
+    existingStudent.photo = updatedPhoto;
+    existingStudent.name = updatedName;
+    existingStudent.gender = updatedGender;
+    existingStudent.domain = updatedDomain;
+    existingStudent.dob = updatedDob;
+    existingStudent.mobile = updatedMobile;
+    existingStudent.email = updatedEmail;
+
+    await studentdb.put(id, existingStudent);
+    getStudents();
+  }
+
+}

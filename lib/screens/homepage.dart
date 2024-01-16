@@ -45,11 +45,11 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               children: [
     
-                Text(" student registrations"),
+                Text('"Provider"',style: GoogleFonts.abrilFatface(fontSize: 20,color: Colors.blue[200]),),
                 const SizedBox(height: 30,),
                 //option 1
                 InkWell(overlayColor: const MaterialStatePropertyAll(Colors.amber),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AddPage(),)),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AddPage(isEdit: false),)),
                   child: Container(
                     height: 150,
                     width: double.infinity,

@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:manifest/model/student_model.dart';
 
 class StudentProvider extends ChangeNotifier{
 
@@ -9,6 +10,9 @@ class StudentProvider extends ChangeNotifier{
   DateTime? dateOfBirth;
   String? gender;
   String? domain;
+
+  List<StudentModel> _studentList = [];
+  List<StudentModel> get studentLists => _studentList;
   
   int count = 0;
 
@@ -34,6 +38,11 @@ class StudentProvider extends ChangeNotifier{
 //to add domain
   getDomain(String d){
     domain = d;
+    notifyListeners();
+  }
+
+  searchStudent(List<StudentModel> newList){
+    _studentList = newList;
     notifyListeners();
   }
 
